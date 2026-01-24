@@ -1,8 +1,124 @@
-<html>
-  <head>
-    <title>S Cockpit</title>
-  </head>
-  <body style="font-family: Arial;">
-    <b>Test1</b>
-  </body>
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>S Cockpit</title>
+
+  <style>
+    /* Immer Dark Mode */
+    :root {
+      --bg: #1e1e1e;
+      --fg: #e0e0e0;
+      --link: #e0e0e0;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 1rem;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    /* Links immer hellgrau, ohne Unterstreichung */
+    a:link, a:visited, a:active {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    /* Hover: unterstreichen */
+    a:hover {
+      color: var(--link);
+      text-decoration: underline;
+    }
+
+    /* Icons immer 16px hoch */
+    a img {
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="links">Lade CSV…</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // --- CSV-Dateiname aus URL lesen ---
+      // Beispiel: index.html?test01  → test01.csv
+      const param = window.location.search.replace("?", "").trim();
+      const csvName = param !== "" ? param + ".csv" : "test01.csv";
+
+      // GitHub RAW URL dynamisch bauen
+      const csvUrl = "https://raw.githubusercontent.com/sali80/cockpit/main/" + csvName;
+
+      fetch(csvUrl)
+        .then(r => {
+          if (!r.ok) throw new Error("CSV nicht gefunden: " + csvName);
+          return r.text();
+        })
+        .then(text => {
+          const container = document.getElementById('links');
+          container.innerHTML = "";
+
+          const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+          if (lines.length <= 1) return;
+
+          // Kopfzeile entfernen
+          lines.shift();
+
+          lines.forEach(line => {
+            const parts = line.split(';');
+            const title = (parts[0] || '').trim();
+            const url   = (parts[1] || '').trim();
+            let   img   = (parts[2] || '').trim();
+            const tag   = (parts.slice(3).join(';') || '').trim();
+
+            const hasTitle = title !== '' && url !== '';
+            const hasTag   = tag !== '';
+
+            if (hasTitle) {
+              const a = document.createElement('a');
+              a.href = url;
+              a.target = '_blank';
+
+              // ICON-LOGIK
+              if (img === "favicon") {
+                try {
+                  const domain = new URL(url).hostname;
+                  img = "https://www.google.com/s2/favicons?domain=" + domain + "&sz=32";
+                } catch (e) {
+                  img = "";
+                }
+              }
+
+              if (img && img.startsWith("http")) {
+                const image = document.createElement('img');
+                image.src = img;
+                image.border = 0;
+                a.appendChild(image);
+              }
+
+              a.appendChild(document.createTextNode(title));
+              container.appendChild(a);
+              container.appendChild(document.createTextNode(' '));
+            }
+
+            if (hasTag) {
+              const span = document.createElement('span');
+              span.innerHTML = tag;
+              container.appendChild(span);
+            }
+          });
+        })
+        .catch(err => {
+          document.getElementById('links').innerHTML =
+            "<b>Fehler beim Laden der CSV:</b><br>" +
+            err;
+        });
+    });
+  </script>
+</body>
 </html>
