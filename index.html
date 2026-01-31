@@ -26,26 +26,22 @@
       line-height: 1.4;
     }
 
-    /* Links immer hellgrau, ohne Unterstreichung */
     a:link, a:visited, a:active {
       color: var(--link);
       text-decoration: none;
     }
 
-    /* Hover: unterstreichen */
     a:hover {
       color: var(--link);
       text-decoration: underline;
     }
 
-    /* Icons immer 16px hoch */
     a img {
       height: 16px;
       vertical-align: middle;
       margin-right: 4px;
     }
 
-    /* Mobile: alles größer */
     @media (max-width: 600px) {
       body {
         font-size: 1.5rem;
@@ -71,25 +67,35 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-      // --- Parameter lesen ---
+      /* -----------------------------
+         PARAMETER AUSLESEN + TITEL
+      ------------------------------ */
+
       const param = window.location.search.replace("?", "").trim();
+      document.title = param === "" ? "Cockpit" : param;
 
-      // --- Titel setzen ---
-      if (param === "") {
-        document.title = "Cockpit";
-      } else {
-        document.title = param;
-      }
+      /* -----------------------------------------
+         CSV-MAPPING: HIER HINTERLEGST DU ALLES
+      ------------------------------------------ */
 
-      // --- CSV-Datei bestimmen ---
-      const csvName = param !== "" ? param + ".csv" : "test01.csv";
+      const csvSources = {
+        "": "https://docs.google.com/spreadsheets/d/1GoPSes-Cb_mzA9WgJnsWjmbdofNbwkgXEioHe5aBLsk/export?format=csv",
+        "test01": "https://datei.de/test.csv",
+        "helloworld": "https://hello.de/world.csv"
+      };
 
-      // --- GitHub RAW URL ---
-      const csvUrl = "https://raw.githubusercontent.com/sali80/cockpit/main/" + csvName;
+      // CSV-URL bestimmen (Fallback = Standard)
+      const csvUrl = csvSources[param] || csvSources[""];
+
+      console.log("Lade CSV:", csvUrl);
+
+      /* -----------------------------
+         CSV LADEN + DEIN PARSER
+      ------------------------------ */
 
       fetch(csvUrl)
         .then(r => {
-          if (!r.ok) throw new Error("CSV nicht gefunden: " + csvName);
+          if (!r.ok) throw new Error("CSV nicht gefunden: " + csvUrl);
           return r.text();
         })
         .then(text => {
@@ -99,8 +105,7 @@
           const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
           if (lines.length <= 1) return;
 
-          // Kopfzeile entfernen
-          lines.shift();
+          lines.shift(); // Kopfzeile entfernen
 
           lines.forEach(line => {
             const parts = line.split(';');
@@ -158,4 +163,3 @@
   </script>
 </body>
 </html>
-
