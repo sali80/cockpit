@@ -10,7 +10,6 @@
   <title>Cockpit</title>
 
   <style>
-    /* Immer Dark Mode */
     :root {
       --bg: #1e1e1e;
       --fg: #e0e0e0;
@@ -65,33 +64,28 @@
   <div id="links">Lade CSV…</div>
 
   <script>
+
+    /* ----------------------------------------------------
+       CSV SOURCES — HIER TRÄGST DU ALLE QUELLEN EIN
+       ---------------------------------------------------- */
+    const csvSources = {
+      "": "https://docs.google.com/spreadsheets/d/1GoPSes-Cb_mzA9WgJnsWjmbdofNbwkgXEioHe5aBLsk/export?format=csv",
+      "test01": "https://datei.de/test.csv",
+      "helloworld": "https://hello.de/world.csv"
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
 
-      /* -----------------------------
-         PARAMETER AUSLESEN + TITEL
-      ------------------------------ */
-
+      // Parameter lesen
       const param = window.location.search.replace("?", "").trim();
+
+      // Titel setzen
       document.title = param === "" ? "Cockpit" : param;
 
-      /* -----------------------------------------
-         CSV-MAPPING: HIER HINTERLEGST DU ALLES
-      ------------------------------------------ */
-
-      const csvSources = {
-        "": "https://docs.google.com/spreadsheets/d/1GoPSes-Cb_mzA9WgJnsWjmbdofNbwkgXEioHe5aBLsk/export?format=csv",
-        "test01": "https://datei.de/test.csv",
-        "helloworld": "https://hello.de/world.csv"
-      };
-
-      // CSV-URL bestimmen (Fallback = Standard)
+      // CSV-URL bestimmen
       const csvUrl = csvSources[param] || csvSources[""];
 
       console.log("Lade CSV:", csvUrl);
-
-      /* -----------------------------
-         CSV LADEN + DEIN PARSER
-      ------------------------------ */
 
       fetch(csvUrl)
         .then(r => {
@@ -99,13 +93,18 @@
           return r.text();
         })
         .then(text => {
+
+          // BOM entfernen (Google Sheets Fix)
+          text = text.replace(/^\uFEFF/, "");
+
           const container = document.getElementById('links');
           container.innerHTML = "";
 
           const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
           if (lines.length <= 1) return;
 
-          lines.shift(); // Kopfzeile entfernen
+          // Kopfzeile entfernen
+          lines.shift();
 
           lines.forEach(line => {
             const parts = line.split(';');
@@ -121,12 +120,10 @@
               const a = document.createElement('a');
               a.href = url;
 
-              // Nur http/https → neues Tab
               if (url.startsWith("http://") || url.startsWith("https://")) {
                 a.target = "_blank";
               }
 
-              // ICON-LOGIK
               if (img === "favicon") {
                 try {
                   const domain = new URL(url).hostname;
