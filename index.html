@@ -107,12 +107,14 @@
           lines.shift();
 
           lines.forEach(line => {
-            const parts = line.split(',');  // <-- KOMMA statt Semikolon
 
-            const title = (parts[0] || '').trim();
-            const url   = (parts[1] || '').trim();
-            let   img   = (parts[2] || '').trim();
-            const tag   = (parts.slice(3).join(',') || '').trim();
+            const parts = line.split(',');
+
+            const title  = (parts[0] || '').trim();
+            const url    = (parts[1] || '').trim();
+            let   img    = (parts[2] || '').trim();
+            const tag    = (parts[3] || '').trim();
+            const invert = (parts[4] || '').trim().toUpperCase() === "TRUE";
 
             const hasTitle = title !== '' && url !== '';
             const hasTag   = tag !== '';
@@ -140,6 +142,11 @@
                 const image = document.createElement('img');
                 image.src = img;
                 image.border = 0;
+
+                if (invert) {
+                  image.style.filter = "invert(1)";
+                }
+
                 a.appendChild(image);
               }
 
